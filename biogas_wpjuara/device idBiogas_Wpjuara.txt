@@ -1,0 +1,2 @@
+device id:Biogas_Wpjuara
+device credentials : ZcByQ03lbe1CJ&8Y
