@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "author": "Uri Shaked",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 402.94, "left": 25, "attrs": {} },
+    { "type": "wokwi-membrane-keypad", "id": "keypad", "top": -69.2, "left": 92, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": 430.7, "left": 393.4, "attrs": {} },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": 280.8,
+      "left": 117,
+      "attrs": { "volume": "0.1" }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": 630.4,
+      "left": 485.6,
+      "attrs": { "pins": "i2c" }
+    }
+  ],
+  "connections": [
+    [ "uno:GND.1", "lcd:VSS", "black", [ "v-51", "*", "h0", "v18" ] ],
+    [ "uno:GND.1", "lcd:K", "black", [ "v-51", "*", "h0", "v18" ] ],
+    [ "uno:GND.1", "lcd:RW", "black", [ "v-51", "*", "h0", "v18" ] ],
+    [ "uno:2", "keypad:C4", "brown", [] ],
+    [ "uno:3", "keypad:C3", "gray", [] ],
+    [ "uno:4", "keypad:C2", "orange", [] ],
+    [ "uno:5", "keypad:C1", "pink", [] ],
+    [ "uno:6", "keypad:R4", "blue", [] ],
+    [ "uno:7", "keypad:R3", "green", [] ],
+    [ "uno:8", "keypad:R2", "purple", [ "v-14", "h0" ] ],
+    [ "uno:9", "keypad:R1", "gold", [ "v-18", "h0" ] ],
+    [ "pot1:GND", "uno:GND.3", "black", [ "v67.2", "h-220.8" ] ],
+    [ "pot1:SIG", "uno:A0", "green", [ "v76.8", "h-202" ] ],
+    [ "pot1:VCC", "uno:5V", "red", [ "v115.2", "h-260" ] ],
+    [ "bz1:1", "uno:GND.1", "black", [ "v0" ] ],
+    [ "bz1:2", "uno:10", "green", [ "v9.6", "h18.8" ] ],
+    [ "lcd1:VCC", "pot1:VCC", "red", [ "h0" ] ],
+    [ "lcd1:GND", "pot1:GND", "black", [ "h0" ] ],
+    [ "lcd1:SDA", "uno:A4", "gold", [ "h0" ] ],
+    [ "lcd1:SCL", "uno:A5", "white", [ "h0" ] ]
+  ],
+  "dependencies": {}
+}

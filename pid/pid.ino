@@ -9,8 +9,11 @@ double sudut_aktual, p, i, d, nilai_PID, prev_error, integral, derivative;
 const int Toleransi = 5;
 const double Kp = 0.5, Ki = 0.1, Kd = 0.01;
 #define sensor 2
-int rpm = 0;
-unsigned long millissebelum;
+//deklarasi variabel yang digunakan untuk tachometer
+unsigned long timeold;
+unsigned int rpmku; //variabel tipe data integer
+float rpmfix;
+int kalibrasi;
 volatile int objects;
 
 void setup() {
@@ -20,7 +23,10 @@ void setup() {
   pinMode(8, OUTPUT);  // IN1
   pinMode(9, OUTPUT);  // IN2
   pinMode(10, OUTPUT); // ENA (PWM)
-  attachInterrupt(digitalPinToInterrupt(sensor), count, FALLING);
+  attachInterrupt(digitalPinToInterrupt(sensor), count, RISING);
+  objects = 0;
+  rpmku = 0;
+  kalibrasi = 0;
   delay(2000);
   pinMode(sensor, INPUT);
   prev_error = 0;
@@ -29,16 +35,20 @@ void setup() {
 
 void loop() {
   // Perhitungan putaran rpm dan perhitungan putaran di setiap hole
-  if (millis() - millissebelum > 1000) {
-    rpm = (objects / 12) * 60;
-    objects = 0;
-    millissebelum = millis();
+  rpmku = 30*1000/(millis()-timeold)*objects;
+  timeold = millis();
+  objects = 0;
+
+  kalibrasi = (rpmku-150)/109;
+  rpmfix = kalibrasi * 10;
+  if (rpmfix > 2000) {
+  rpmfix = 0;
   }
 
   // Membaca nilai referensi dari potensiometer
   int set = analogRead(A0);
-  sudut_ref = map(set, 0, 1023, 0, 1000);  // Ubah sesuai dengan rentang RPM yang diinginkan
-  sudut_aktual = rpm;
+  sudut_ref = map(set, 0, 1023, 0, 400);  // Ubah sesuai dengan rentang RPM yang diinginkan
+  sudut_aktual = rpmfix;
   error = sudut_ref - sudut_aktual;
 
   if (abs(error) <= Toleransi) error = 0;
@@ -62,7 +72,7 @@ void loop() {
 
   // Menampilkan nilai pembacaan sensor dan perhitungan rpm
   Serial.print("RPM: ");
-  Serial.print(rpm);
+  Serial.print(rpmfix);
   Serial.print(",");
   Serial.print(" Set: ");
   Serial.print(sudut_ref);
@@ -76,7 +86,7 @@ void loop() {
 //menampilkan nya di lcd
     lcd.setCursor(0,0);
     lcd.print("rpm:");
-    lcd.print(map(rpm,0,1000,0,128));
+    lcd.print(rpmfix);
     lcd.print("  ");
     lcd.print("ref:");
     lcd.print(sudut_ref);

@@ -5,24 +5,26 @@
 #include <Wire.h>
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-float setpoint = 0;
+int nilai = 0;
+float setpoint;
 const int kipas = 12;
 //mengautur variable ds18b20
 const int oneWireBusPin = 10;
 OneWire oneWire(oneWireBusPin);
 DallasTemperature Sensor(&oneWire);
 //fungsi waktu millis
-unsigned long waktu_sebelum = millis();
-long interval = 500;
+unsigned long lastmillis;
+#define interval 1000
 // ----------------------------------------setting fungsi keypad-------------------------//
 const byte ROWS = 4;
 const byte COLS = 4;
-byte data_count = 0;
+float setpoin = 0;
+float input = 0;
 char hexaKeys[ROWS][COLS] = {
-  { '1', '2', '3', 'A' },
-  { '4', '5', '6', 'B' },
-  { '7', '8', '9', 'C' },
-  { '*', '0', '#', 'D' }
+  { 'D', 'C', 'B', 'A' },
+  { '#', '9', '6', '3' },
+  { '0', '8', '5', '2' },
+  { '*', '7', '4', '1' }
 };
 byte rowPins[ROWS] = { 9, 8, 7, 6 };
 byte colPins[COLS] = { 5, 4, 3, 2 };
@@ -31,7 +33,7 @@ Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS)
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  lcd.begin();
+  lcd.init();
   lcd.backlight();
   lcd.setCursor(0, 0);
   lcd.print("pengatur silo");
@@ -43,43 +45,44 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  unsigned long waktuSekarang = millis();
-  if (waktuSekarang - waktu_sebelum > interval) {
-    lcd.print(setpoint);
+  if (millis() - lastmillis > interval) {
     Sensor.requestTemperatures();
-    int celsius = Sensor.getTempCByIndex(0);
-    lcd.setCursor(8, 0);
-    lcd.print(celsius);
+    float celsius = Sensor.getTempCByIndex(0);
+    lcd.setCursor(0, 0);
+    lcd.print("suhu:");
+    lcd.print(celsius) + lcd.print("    ");
     Serial.println(celsius);
-    waktu_sebelum = waktuSekarang;        
+  if (celsius > setpoint) {
+      digitalWrite(buzzerPin, HIGH); // Nyalakan buzzer
+    } else {
+      digitalWrite(buzzerPin, LOW); // Matikan buzzer
+    }
+    //realtime millis
+    lastmillis = millis();
   }
+
   char customeKey = customKeypad.getKey();
   if (customeKey) {
-    Serial.println(customeKey);
-    Data[data_count] = customeKey;
-    lcd.setCursor(data_count, 1);
-    lcd.print(Data[data_count]);
-    data_count++;
-    Serial.begin(customeKey);
-    switch (customeKey) {
-      case 'A':
-        while (data_count != 0) {
-          Data[data_count--] = 0;
-          lcd.clear();
-        }
-        return;
-        break;
-      case 'B':
-        Data[data_count] = 0;
-        lcd.setCursor(0, 0);
-
-        setpoint = atoi(Data);
-        if (celsius >= setpoint) {
-          digitalWrite(kipas, HIGH);
-        } else {
-          digitalWrite(kipas, LOW);
-        }
-        break;
-    }
+    if (customeKey >= '0' && customeKey <= '9') {
+      input = input * 10 + (customeKey - '0');  //membuat karakter float
+      lcd.setCursor(0, 1);
+      lcd.print("set:");
+      lcd.setCursor(4, 1);
+      lcd.print(input);
+    } else if (customeKey == '#') {  //menghapus karakter
+      input = 0;
+      //lcd.clear();
+    } else if (customeKey == '*') {  //reset
+      input = 0;
+      setpoint = 0;
+      //lcd.print("                          ");
+      lcd.setCursor(0, 0);
+      lcd.print("data terestar");
+    } else if (customeKey == 'A') {
+      setpoint = input;
+      lcd.setCursor(0, 1);
+      lcd.print("setpoin:");
+      lcd.print(setpoint);
+    }    
   }
 }
